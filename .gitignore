@@ -4,6 +4,10 @@
 target/
 **/target/
 **/*.rs.bk
+*.bak
+*.log
+* copy.rs
+* copy.jsonl
 Cargo.lock
 
 # --- C++ & Kernel Build Artifacts ---
@@ -66,3 +70,4 @@ desktop.ini
 .cluaiz/
 models/
 deps_tool/
+/cluaiz-builder

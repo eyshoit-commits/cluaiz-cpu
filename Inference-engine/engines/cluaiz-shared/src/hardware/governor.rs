@@ -2,7 +2,6 @@ use crate::hardware::schema::booster::BoosterControl;
 use crate::hardware::schema::profiles::SystemControl;
 use crate::hardware::system_control::HardwareOrchestrator;
 use once_cell::sync::Lazy;
-use rkyv::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -497,26 +496,20 @@ impl HardwareGovernor {
             return Err(anyhow::anyhow!("Binary truth missing"));
         }
 
-        let bytes_raw = std::fs::read(&path)?;
-        let mut bytes = rkyv::AlignedVec::with_capacity(bytes_raw.len());
-        bytes.extend_from_slice(&bytes_raw);
+        let bytes = std::fs::read(&path)?;
 
-        // 🛡️ Ultimate Safety Guard: Catch rkyv panics (overflows/alignment)
-        let result = std::panic::catch_unwind(|| {
-            if bytes.len() < 32 {
-                return None;
-            }
-            let archived = unsafe { rkyv::archived_root::<SystemControl>(&bytes) };
-            archived.deserialize(&mut rkyv::Infallible).ok()
-        });
-
-        match result {
-            Ok(Some(control)) => Ok(control),
-            _ => {
+        // Never call rkyv::archived_root on persisted, potentially corrupted bytes.
+        // That API is unsafe and malformed offsets can cause SIGSEGV before Rust can
+        // unwind. Bincode validates its input while deserializing and fails normally.
+        match bincode::deserialize::<SystemControl>(&bytes) {
+            Ok(control) => Ok(control),
+            Err(error) => {
                 let _ = std::fs::remove_file(&path);
-                println!("⚠️ [Self-Healing] Binary Truth Corrupted. Recovering...");
+                println!(
+                    "⚠️ [Self-Healing] Binary Truth Corrupted ({error}). Recovering..."
+                );
                 Self::auto_calibrate()?;
-                Err(anyhow::anyhow!("Binary truth recovered. Please retry."))
+                Self::load_binary_truth()
             }
         }
     }
@@ -560,9 +553,9 @@ impl HardwareGovernor {
         let json_data = serde_json::to_string_pretty(control)?;
         std::fs::write(&temp_json, json_data)?;
 
-        let bytes = rkyv::to_bytes::<_, 4096>(control)
+        let bytes = bincode::serialize(control)
             .map_err(|e| anyhow::anyhow!("Binary Serialization Failed: {}", e))?;
-        std::fs::write(&temp_bin, bytes.as_slice())?;
+        std::fs::write(&temp_bin, bytes)?;
 
         // Atomic Swap
         std::fs::rename(temp_json, json_path)?;
@@ -594,25 +587,15 @@ impl HardwareGovernor {
             }
         }
 
-        // 🚀 Priority 2: Binary Truth (Panic-Safe Rkyv Fallback)
+        // Priority 2: safely decoded binary truth.
         if bin_path.exists() {
-            if let Ok(bytes_raw) = std::fs::read(&bin_path) {
-                let mut bytes = rkyv::AlignedVec::with_capacity(bytes_raw.len());
-                bytes.extend_from_slice(&bytes_raw);
-                {
-                    let result = std::panic::catch_unwind(|| {
-                        if bytes.len() < 32 {
-                            return None;
-                        }
-                        let archived = unsafe { rkyv::archived_root::<BoosterControl>(&bytes) };
-                        archived.deserialize(&mut rkyv::Infallible).ok()
-                    });
-
-                    if let Ok(Some(control)) = result {
-                        return Ok(control);
-                    }
+            if let Ok(bytes) = std::fs::read(&bin_path) {
+                if let Ok(control) = bincode::deserialize::<BoosterControl>(&bytes) {
+                    return Ok(control);
                 }
-                // If panic or error, wipe it
+
+                // Old rkyv files and corrupted data are discarded. The JSON copy
+                // remains the editable source of truth and will regenerate this file.
                 let _ = std::fs::remove_file(&bin_path);
             }
         }
@@ -633,9 +616,9 @@ impl HardwareGovernor {
         let json_data = serde_json::to_string_pretty(control)?;
         std::fs::write(&json_path, json_data)?;
 
-        let bytes = rkyv::to_bytes::<_, 1024>(control)
+        let bytes = bincode::serialize(control)
             .map_err(|e| anyhow::anyhow!("Binary Serialization Failed: {}", e))?;
-        std::fs::write(&bin_path, bytes.as_slice())?;
+        std::fs::write(&bin_path, bytes)?;
 
         Ok(())
     }

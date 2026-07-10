@@ -44,7 +44,3 @@ sycl = []       # Intel GPU (oneAPI)
 cann = []       # Huawei Ascend NPU
 arm_neon = []   # ARM CPU optimization (Raspberry Pi / Mobile)
 
-[[bin]]
-name = "test_llama"
-path = "src/bin/test_llama.rs"
-

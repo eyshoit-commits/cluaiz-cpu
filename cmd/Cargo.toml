@@ -3,10 +3,10 @@ name = "cmd"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-default-run = "cluaiz"
+default-run = "bitshit"
 
 [[bin]]
-name = "cluaiz"
+name = "bitshit"
 path = "src/main.rs"
 
 [dependencies]

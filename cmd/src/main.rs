@@ -13,10 +13,10 @@ mod cli;
 
 use crate::core::bootstrapper::Bootstrapper;
 
-// ── Cluaiz CLI Definition ──────────────────────────────────────────────────
+// ── 1BitShit CLI Definition ────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "cluaiz", about = "Cluaiz-OS: Sovereign Neural Kernel", version = env!("CARGO_PKG_VERSION"), disable_help_subcommand = true)]
+#[command(name = "bitshit", about = "1BitShit CPU: local BitNet and GGUF inference runtime", version = env!("CARGO_PKG_VERSION"), disable_help_subcommand = true)]
 pub struct Cli {
     #[command(subcommand)]
     command: Option<CliCommand>,
@@ -37,7 +37,7 @@ enum CliCommand {
         #[command(subcommand)]
         command: Option<crate::ComponentCommand>,
     },
-    /// Manage cluaiz Plugins
+    /// Manage 1BitShit plugins
     Plugin {
         #[command(subcommand)]
         command: Option<crate::ComponentCommand>,
@@ -69,7 +69,7 @@ enum CliCommand {
         interactive: bool,
     },
 
-    /// Open the cluaiz Main Menu.
+    /// Open the 1BitShit main menu.
     Menu,
 
     /// List all downloaded models in the vault.
@@ -143,7 +143,7 @@ enum CliCommand {
     /// Test JIT KV Cache compilation and memory footprint
     TestJit,
 
-    /// 🛠️ Sync compiled development artifacts (engines, drivers) to ~/.cluaiz manually
+    /// Sync compiled development artifacts into the active runtime directory
     DevSync {
         /// Target to sync (all, core, driver)
         #[arg(default_value = "all")]
@@ -171,7 +171,7 @@ enum CliCommand {
         command: Option<ModelCommand>,
     },
 
-    /// Setup Cluaiz Node Profile and Identity
+    /// Set up the 1BitShit node profile and identity
     Setup {
         #[command(subcommand)]
         command: SetupCommand,
@@ -216,10 +216,10 @@ pub enum SetupCommand {
 
 #[derive(Subcommand)]
 pub enum ComponentCommand {
-    /// Install a component from the cluaiz-hub registry
+    /// Install a component from the compatible component registry
     #[command(alias = "i")]
     Install {
-        /// Name of the component to install (e.g., 'cluaiz-search' or 'cluaiz-search@0.1.0')
+        /// Name of the component to install
         component_name: String,
     },
     /// List all locally installed components
@@ -289,7 +289,7 @@ async fn main() -> Result<()> {
         let global_bin_dir = cluaiz_shared::HardwareGovernor::resolve_bin_gateway();
         if !current_exe.starts_with(&global_bin_dir) {
             eprintln!("  {} [Ghost Execution Detected] You are running a local binary at {:?}", "⚠️".yellow().bold(), current_exe);
-            eprintln!("  {} To use the Sovereign System, run the global 'cluaiz' command.\n", "💡".cyan());
+            eprintln!("  {} To use the installed runtime, run the global 'bitshit' command.\n", "💡".cyan());
         }
     }
 
@@ -312,7 +312,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // 🚀 SILENCE THE VOID: Redirect all logs to file at the project root
-    let log_path = cluaiz_shared::environment::EnvironmentManager::current().local_dir.join("cluaiz_Core.log");
+    let log_path = cluaiz_shared::environment::EnvironmentManager::current()
+        .local_dir
+        .join("bitshit-core.log");
 
     if let Ok(log_file) = std::fs::File::create(&log_path) {
         let _ = tracing_subscriber::fmt()
@@ -321,10 +323,10 @@ async fn main() -> Result<()> {
             .try_init();
     }
 
-    // 🚀 Cluaiz BOOTSTRAP (Local Dev-Sync & Registry Verification)
+    // 🚀 1BitShit BOOTSTRAP (Local Dev-Sync & Registry Verification)
     let is_dev_sync = std::env::args().any(|arg| arg == "dev-sync");
     if let Err(e) = Bootstrapper::ignite(is_dev_sync).await {
-        eprintln!("\n  {} [Cluaiz] Bootstrap Failed: {}\n", "❌".red(), e);
+        eprintln!("\n  {} [1BitShit] Bootstrap Failed: {}\n", "❌".red(), e);
         std::process::exit(1);
     }
 
@@ -344,7 +346,7 @@ async fn main() -> Result<()> {
     // -- Legacy Flag Handlers --
     if cli.legacy_benchmark {
         if let Err(e) = crate::cli::benchmark::execute(None, 1).await {
-            eprintln!("\n  {} [Cluaiz] Benchmark Error: {}\n", "❌".red(), e);
+            eprintln!("\n  {} [1BitShit] Benchmark Error: {}\n", "❌".red(), e);
             std::process::exit(1);
         }
         return Ok(());
@@ -366,26 +368,26 @@ async fn main() -> Result<()> {
                 start_dashboard().await?;
             } else {
                 if let Err(e) = crate::cli::run::execute(&model_id, interactive).await {
-                    eprintln!("\n  {} [Cluaiz] Run Error: {}\n", "❌".red(), e);
+                    eprintln!("\n  {} [1BitShit] Run Error: {}\n", "❌".red(), e);
                     std::process::exit(1);
                 }
             }
         }
         Some(CliCommand::Pull { model_id }) => {
             if let Err(e) = crate::cli::pull::execute(&model_id).await {
-                eprintln!("\n  {} [Cluaiz] Pull Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Pull Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
         Some(CliCommand::List) => {
             if let Err(e) = crate::cli::list::execute().await {
-                eprintln!("\n  {} [Cluaiz] List Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] List Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
         Some(CliCommand::Rm { model_id }) => {
             if let Err(e) = crate::cli::rm::execute(&model_id).await {
-                eprintln!("\n  {} [Cluaiz] Removal Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Removal Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
@@ -399,7 +401,7 @@ async fn main() -> Result<()> {
         }
         Some(CliCommand::Benchmark { model_id, runs }) => {
             if let Err(e) = crate::cli::benchmark::execute(model_id, runs).await {
-                eprintln!("\n  {} [Cluaiz] Benchmark Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Benchmark Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
@@ -412,14 +414,14 @@ async fn main() -> Result<()> {
         }
         Some(CliCommand::Ps) => {
             if let Err(e) = crate::cli::ps::execute().await {
-                eprintln!("\n  {} [Cluaiz] Process Status Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Process Status Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
         Some(CliCommand::Config { command: ConfigCommand::Set { component_type, component_id, key_path, value } }) => {
             if let Err(e) = crate::cli::config_cmd::execute(component_type.clone(), component_id.clone(), key_path.clone(), value.clone()).await {
                 use colored::Colorize;
-                eprintln!("\n  {} [Cluaiz] Config Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Config Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
@@ -432,7 +434,7 @@ async fn main() -> Result<()> {
             core::bootstrapper::Bootstrapper::sync_dev_artifacts(&target, driver_name.as_deref(), global_dir.clone(), &profile)?;
             
             // 🚀 Force base configuration into the Global Directory so the user doesn't have an empty config!
-            std::env::set_var("cluaiz_HOME", global_dir.to_string_lossy().to_string());
+            std::env::set_var("BITSHIT_HOME", global_dir.to_string_lossy().to_string());
             let mut permissions = engines::neural_foundry::security::permission_schema::PermissionSchema::load();
             permissions.auto_assign_defaults();
             let _ = cluaiz_shared::hardware::governor::HardwareGovernor::load_system_control();
@@ -444,28 +446,29 @@ async fn main() -> Result<()> {
                 }
             }
             
-            std::env::remove_var("cluaiz_HOME");
+            std::env::remove_var("BITSHIT_HOME");
 
             println!("✅  [DevSync] Synchronization Complete.");
         }
         Some(CliCommand::Serve) => {
-            let port: u16 = std::env::var("cluaiz_PORT")
+            let port: u16 = std::env::var("BITSHIT_PORT")
+                .or_else(|_| std::env::var("cluaiz_PORT"))
                 .ok()
                 .and_then(|p| p.parse().ok())
                 .unwrap_or(8000);
-            println!("  {} Starting cluaiz API Daemon on http://localhost:{} ...", "🚀".green(), port);
+            println!("  {} Starting 1BitShit API Daemon on http://localhost:{} ...", "🚀".green(), port);
             cluaiz_api::run_daemon().await; 
         }
         Some(CliCommand::Booster { kv_quant, context_shift, mode, spec_decode }) => {
             if let Err(e) = crate::cli::booster::execute(kv_quant, context_shift, mode, spec_decode).await {
-                eprintln!("\n  {} [Cluaiz] Booster Config Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Booster Config Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
         Some(CliCommand::Skill { command }) => {
             if let Some(cmd) = command {
                 if let Err(e) = crate::cli::component::execute("skill", cmd).await {
-                    eprintln!("\n  {} [Cluaiz] Skill Manager Error: {}\n", "❌".red(), e);
+                    eprintln!("\n  {} [1BitShit] Skill Manager Error: {}\n", "❌".red(), e);
                     std::process::exit(1);
                 }
             } else {
@@ -477,7 +480,7 @@ async fn main() -> Result<()> {
         Some(CliCommand::Plugin { command }) => {
             if let Some(cmd) = command {
                 if let Err(e) = crate::cli::component::execute("plugin", cmd).await {
-                    eprintln!("\n  {} [Cluaiz] Plugin Manager Error: {}\n", "❌".red(), e);
+                    eprintln!("\n  {} [1BitShit] Plugin Manager Error: {}\n", "❌".red(), e);
                     std::process::exit(1);
                 }
             } else {
@@ -489,7 +492,7 @@ async fn main() -> Result<()> {
         Some(CliCommand::Extension { command }) => {
             if let Some(cmd) = command {
                 if let Err(e) = crate::cli::component::execute("extension", cmd).await {
-                    eprintln!("\n  {} [Cluaiz] Extension Manager Error: {}\n", "❌".red(), e);
+                    eprintln!("\n  {} [1BitShit] Extension Manager Error: {}\n", "❌".red(), e);
                     std::process::exit(1);
                 }
             } else {
@@ -501,7 +504,7 @@ async fn main() -> Result<()> {
         Some(CliCommand::Mcp { command }) => {
             if let Some(cmd) = command {
                 if let Err(e) = crate::cli::component::execute("mcp", cmd).await {
-                    eprintln!("\n  {} [Cluaiz] MCP Manager Error: {}\n", "❌".red(), e);
+                    eprintln!("\n  {} [1BitShit] MCP Manager Error: {}\n", "❌".red(), e);
                     std::process::exit(1);
                 }
             } else {
@@ -512,20 +515,20 @@ async fn main() -> Result<()> {
         }
         Some(CliCommand::Ingest { file_path }) => {
             if let Err(e) = crate::cli::ingest::execute(&file_path).await {
-                eprintln!("\n  {} [Cluaiz] Ingestion Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Ingestion Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
         Some(CliCommand::TestJit) => {
             if let Err(e) = crate::cli::test_jit::execute().await {
-                eprintln!("\n  {} [Cluaiz] JIT Test Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] JIT Test Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
 
         Some(CliCommand::Setup { command }) => {
             if let Err(e) = crate::cli::setup::execute(command).await {
-                eprintln!("\n  {} [Cluaiz] Setup Error: {}\n", "❌".red(), e);
+                eprintln!("\n  {} [1BitShit] Setup Error: {}\n", "❌".red(), e);
                 std::process::exit(1);
             }
         }
@@ -693,7 +696,7 @@ async fn start_dashboard() -> Result<()> {
         hook(info);
     }));
 
-    // ── Cluaiz PRIMARY FLOW ──
+    // ── 1BitShit PRIMARY FLOW ──
     let app = crate::core::app::App::new(None, Some(crate::core::state::OsState::Dashboard))?;
     app.run().await?;
 
@@ -713,7 +716,7 @@ async fn start_menu() -> Result<()> {
         hook(info);
     }));
 
-    // ── Cluaiz PRIMARY FLOW ──
+    // ── 1BitShit PRIMARY FLOW ──
     let app = crate::core::app::App::new(None, Some(crate::core::state::OsState::MainMenu))?;
     app.run().await?;
 

@@ -17,7 +17,7 @@ pub struct EnvironmentManager {
 
 impl EnvironmentManager {
     /// Returns the current global environment manager, dynamically resolving the correct
-    /// cluaiz root directory based on the execution context.
+    /// 1BitShit root directory based on the execution context.
     pub fn current() -> Self {
         // 1. Portable Mode: Ignore OS HOME if portable.flag exists next to the exe
         if let Ok(exe_path) = std::env::current_exe() {
@@ -32,8 +32,13 @@ impl EnvironmentManager {
             }
         }
 
-        // 2. Environment Override
-        if let Ok(env_path) = std::env::var("cluaiz_HOME") {
+        // 2. Environment override. New names take precedence while the legacy
+        // variable remains supported for existing installations.
+        let configured_root = std::env::var("BITSHIT_HOME")
+            .or_else(|_| std::env::var("BITSHIT_ROOT"))
+            .or_else(|_| std::env::var("cluaiz_HOME"));
+
+        if let Ok(env_path) = configured_root {
             return Self {
                 mode: EnvironmentMode::Installed,
                 local_dir: PathBuf::from(&env_path),
@@ -48,19 +53,32 @@ impl EnvironmentManager {
             let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
             return Self {
                 mode: EnvironmentMode::Development,
-                local_dir: current_dir.join(".cluaiz"),
-                global_dir: home_dir.join(".cluaiz"),
+                local_dir: current_dir.join(".1bitshit"),
+                global_dir: Self::installed_root(&home_dir),
             };
         }
 
         // 4. Installed Mode (Default)
         // Check dirs package for home directory
         let home_dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
-        let global_path = home_dir.join(".cluaiz");
+        let global_path = Self::installed_root(&home_dir);
         Self {
             mode: EnvironmentMode::Installed,
             local_dir: global_path.clone(),
             global_dir: global_path,
+        }
+    }
+
+    /// Prefer the rebranded directory, but keep an existing Cluaiz installation
+    /// usable until an explicit, versioned data migration is available.
+    fn installed_root(home_dir: &std::path::Path) -> PathBuf {
+        let current = home_dir.join(".1bitshit");
+        let legacy = home_dir.join(".cluaiz");
+
+        if current.exists() || !legacy.exists() {
+            current
+        } else {
+            legacy
         }
     }
 

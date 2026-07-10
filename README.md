@@ -340,3 +340,4 @@ Since the pre-compiled `cluaiz` executables are built dynamically and are not si
 cluaiz is released under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for more details.
 
 </details>
+# cluaiz-cpu

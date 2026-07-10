@@ -1,48 +1,48 @@
 {
-  "name": "cluaiz-package-manager",
+  "name": "1bitshit-cpu",
   "version": "0.1.3",
-  "id": "https://github.com/cluaiz/cluaiz/raw/main/package.json",
+  "id": "https://github.com/eyshoit-commits/cluaiz-cpu/raw/main/package.json",
   "last_updated": "2026-05-20T10:00:00Z",
-  "author": "cluaiz",
+  "author": "BKG",
   "cdn": "https://cdn.jsdelivr.net",
   "components": {
     "cli": {
       "version": "dev-release",
       "min_supported": null,
-      "manifest_url": "https://github.com/cluaiz/cluaiz/releases/download/cli-dev-release/cluaiz-cli.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/releases/download/cli-dev-release/bitshit-cli.json"
     },
     "engine": {
       "version": "dev-release",
       "min_supported": null,
-      "manifest_url": "https://github.com/cluaiz/cluaiz/releases/download/engine-dev-release/cluaiz-engine.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/releases/download/engine-dev-release/bitshit-engine.json"
     },
     "kernel": {
       "version": "dev-release",
       "min_supported": null,
-      "manifest_url": "https://github.com/cluaiz/cluaiz/releases/download/kernel-dev-release/cluaiz-kernel.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/releases/download/kernel-dev-release/bitshit-kernel.json"
     },
     "drivers": {
       "version": "dev-release",
       "min_supported": null,
-      "manifest_url": "https://github.com/cluaiz/cluaiz/releases/download/driver-dev-release/cluaiz-driver.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/releases/download/driver-dev-release/bitshit-driver.json"
     }
   },
   "web": {
     "ps1": {
       "version": "main",
-      "manifest_url": "https://github.com/cluaiz/cluaiz/blob/main/install.ps1"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/blob/main/install.ps1"
     },
     "sh": {
       "version": "main",
-      "manifest_url": "https://github.com/cluaiz/cluaiz/blob/main/install.sh"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/blob/main/install.sh"
     },
     "models": {
       "version": "main",
-      "manifest_url": "https://github.com/cluaiz/cluaiz/blob/main/models/library/registry.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/blob/main/models/library/registry.json"
     },
     "docs": {
       "version": "main",
-      "manifest_url": "https://github.com/cluaiz/cluaiz/blob/main/docs/registry.json"
+      "manifest_url": "https://github.com/eyshoit-commits/cluaiz-cpu/blob/main/docs/registry.json"
     },
     "hub": {
       "version": "main",

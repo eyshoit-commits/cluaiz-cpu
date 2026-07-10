@@ -96,9 +96,11 @@ impl StructuralDNA {
 
     pub fn load_archived(path: &std::path::Path) -> Result<Self, String> {
         let bytes = std::fs::read(path).map_err(|e| format!("Failed to read Binary DNA: {e}"))?;
-        let archived = unsafe { rkyv::archived_root::<StructuralDNA>(&bytes) };
-        let deserialized: StructuralDNA = archived.deserialize(&mut rkyv::Infallible).unwrap();
-        Ok(deserialized)
+        let archived = rkyv::check_archived_root::<StructuralDNA>(&bytes)
+            .map_err(|e| format!("Invalid Binary DNA: {e}"))?;
+        archived
+            .deserialize(&mut rkyv::Infallible)
+            .map_err(|e| format!("Failed to deserialize Binary DNA: {e:?}"))
     }
 
     /// 🧬 Neural Discovery: Learns model behavior and cross-references with Hardware Truth.

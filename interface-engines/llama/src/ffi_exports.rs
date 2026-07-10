@@ -4,38 +4,16 @@ use super::*;
 #[no_mangle]
 pub extern "C" fn cluaiz_kernel_init() -> *const std::os::raw::c_char {
     unsafe {
-        // 🤫 Sovereign Silence: Hard-redirect native stdout/stderr to NUL
-        // This stops all non-callback logs (CUDA Graph, etc.) from polluting the TUI.
-        /* 🧪 Debug Mode: Temporarily disabled NUL redirection
-        #[cfg(windows)]
-        {
-            let n_path = std::ffi::CString::new("NUL").unwrap();
-            let mode = std::ffi::CString::new("w").unwrap();
-            libc::freopen(n_path.as_ptr(), mode.as_ptr(), libc::stdout);
-            libc::freopen(n_path.as_ptr(), mode.as_ptr(), libc::stderr);
-        }
-        */
-        #[cfg(not(windows))]
-        {
-            // libc does not expose the C FILE globals `stdout` and `stderr`
-            // on every Unix target. Redirect their file descriptors instead.
-            let null_path = std::ffi::CString::new("/dev/null").unwrap();
-            let null_fd = libc::open(null_path.as_ptr(), libc::O_WRONLY);
-
-            if null_fd >= 0 {
-                libc::fflush(std::ptr::null_mut());
-                libc::dup2(null_fd, libc::STDOUT_FILENO);
-                libc::dup2(null_fd, libc::STDERR_FILENO);
-                libc::close(null_fd);
-            }
-        }
-
-        // Also set the callback for handled logs
+        // Never redirect process-wide stdout/stderr while loading a driver.
+        // The dashboard scopes native-log suppression to active inference.
         extern "C" fn verbose_log(
             _level: i32,
             text: *const std::os::raw::c_char,
             _data: *mut std::ffi::c_void,
         ) {
+            if text.is_null() {
+                return;
+            }
             let s = unsafe { std::ffi::CStr::from_ptr(text) }.to_string_lossy();
             eprint!("{}", s);
         }
@@ -64,6 +42,11 @@ pub extern "C" fn cluaiz_kernel_instantiate(
     path_ptr: *const std::os::raw::c_char,
     booster_ptr: *const cluaiz_shared::hardware::schema::booster::cluaizBoosterContext,
 ) -> *mut RuntimeB {
+    if path_ptr.is_null() {
+        tracing::error!("[Llama.cpp-Kernel] Null model path received via FFI");
+        return std::ptr::null_mut();
+    }
+
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let path_str = unsafe { std::ffi::CStr::from_ptr(path_ptr) }
             .to_string_lossy()
@@ -183,7 +166,7 @@ pub extern "C" fn cluaiz_kernel_generate_stream(
     user_data: *mut std::ffi::c_void,
 ) -> i32 {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        if engine_ptr.is_null() {
+        if engine_ptr.is_null() || prompt_ptr.is_null() {
             return -1;
         }
         let engine = unsafe { &mut *engine_ptr };

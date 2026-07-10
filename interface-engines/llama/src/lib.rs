@@ -1,4 +1,3 @@
-#![allow(warnings)]
 //! Sovereign Implementation B: Accelerated Feature-Based Runtime (Llama Engine).
 //! This kernel is loaded dynamically by the SiliconOrchestrator.
 
@@ -547,4 +546,3 @@ impl cluaizInference for RuntimeB {
         }
     }
 }
-

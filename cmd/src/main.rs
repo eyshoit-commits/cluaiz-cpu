@@ -305,8 +305,6 @@ async fn main() -> Result<()> {
     // These env vars suppress CUDA Graph + ggml verbose logs at the source.
     // NOTE: We do NOT redirect stderr here because inquire (input box) uses stderr to render.
     // Stderr is selectively redirected only during inference (in dashboard.rs generate_stream).
-    // 🚀 GGML_CUDA_USE_GRAPHS=1: Enables 40% speed boost.
-    std::env::set_var("GGML_CUDA_USE_GRAPHS", "1");
     std::env::set_var("GGML_LOG_LEVEL", "ERROR");
 
     color_eyre::install()?;
@@ -722,4 +720,3 @@ async fn start_menu() -> Result<()> {
     let _ = crate::core::flow::FlowEngine::restore();
     Ok(())
 }
-

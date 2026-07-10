@@ -1,0 +1,21 @@
+[package]
+name = "dispatcher-crate"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "dispatcher"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+neural-core = { path = "../neural_core" }
+llama = { path = "../llama" }
+
+system-booster = { path = "../../Inference-engine/engines/system-booster" }
+libloading = "0.8"
+cluaiz-shared = { path = "../../Inference-engine/engines/cluaiz-shared" }
+anyhow = "1.0"
+async-trait = "0.1"
+tracing = "0.1"
+tokio = { version = "1.0", features = ["full"] }
+serde_json = "1.0"

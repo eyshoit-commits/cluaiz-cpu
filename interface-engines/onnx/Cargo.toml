@@ -1,0 +1,26 @@
+[package]
+name = "onnx"
+version = "0.1.0"
+edition = "2021"
+authors = ["Cluaiz Technologies"]
+
+[lib]
+name = "cluaiz_onnx"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# ── Sovereign ONNX Backend (CPU Multimodal Engine) ──
+ort = { version = "2.0.0-rc.12", features = ["copy-dylibs", "download-binaries", "cuda"] } # ONNX Runtime bindings
+anyhow = "1.0"
+tracing = "0.1"
+cluaiz-shared = { path = "../../Inference-engine/engines/cluaiz-shared" }
+neural-core = { path = "../neural_core" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokenizers = { version = "0.15", default-features = false, features = ["onig"] } # HuggingFace Tokenizers
+image = "0.24"
+ndarray = "0.15"
+tokio = { version = "1.0", features = ["rt"] }
+
+[features]
+default = []

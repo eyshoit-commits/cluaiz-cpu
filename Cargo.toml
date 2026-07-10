@@ -1,0 +1,23 @@
+[workspace]
+members = [
+  "Inference-engine/api",
+  "Inference-engine/engines",
+  "Inference-engine/engines/cluaiz-shared",
+  "Inference-engine/engines/system-booster",
+  "cmd",
+  "test/dummy_plugin",
+  "inference-cel",
+  "inference-drivers",
+  "tools/cluaize-builder"
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Cluaiz Technologies"]
+
+[profile.dev]
+debug = false
+split-debuginfo = "off"
